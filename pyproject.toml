@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pywinsparkle-ng"
+version = "2.0.0"
+description = "WinSparkle 0.9.4 ctypes bindings for Windows x64"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE.txt"]
+classifiers = ["Operating System :: Microsoft :: Windows", "Programming Language :: Python :: 3"]
+
+[tool.setuptools]
+packages = ["pywinsparkle"]
+
+[tool.setuptools.package-data]
+pywinsparkle = ["libs/x64/*"]
