@@ -1,0 +1,33 @@
+name: Check upstream WinSparkle release
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 1'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Report newer release for maintainer review
+        env:
+          GH_TOKEN: '${{ github.token }}'
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          from pathlib import Path
+          pinned = json.loads(Path('tools/winsparkle.json').read_text())['version']
+          req = urllib.request.Request('https://api.github.com/repos/vslavik/winsparkle/releases/latest', headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
+          with urllib.request.urlopen(req, timeout=30) as response:
+              latest = json.load(response)['tag_name'].removeprefix('v')
+          message = f'Pinned WinSparkle: {pinned}; upstream: {latest}'
+          print(message)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write(message + '\n')
+          if latest != pinned:
+              raise SystemExit('Review new header, DLL digest and notices before upgrading')
+          PY
