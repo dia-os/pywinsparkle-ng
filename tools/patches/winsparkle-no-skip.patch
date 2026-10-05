@@ -1,0 +1,22 @@
+diff --git a/src/ui.cpp b/src/ui.cpp
+--- a/src/ui.cpp
++++ b/src/ui.cpp
+@@ -932,16 +932,12 @@ void UpdateDialog::StateUpdateAvailable(const Appcast& info, bool installAutomat
+         HIDE(m_closeButtonSizer);
+         HIDE(m_runInstallerButtonSizer);
+         SHOW(m_updateButtonsSizer);
++        // Never offer "Skip this version"; the app manages update checks itself.
++        HIDE(m_skipVersionButton);
+         if (info.CriticalUpdate)
+-        {
+-            HIDE(m_skipVersionButton);
+             HIDE(m_remindLaterButton);
+-        }
+         else
+-        {
+-            SHOW(m_skipVersionButton);
+             SHOW(m_remindLaterButton);
+-        }
+         DoShowElement(m_releaseNotesSizer, showRelnotes);
+         MakeResizable(showRelnotes);
+     }

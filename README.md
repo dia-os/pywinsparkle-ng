@@ -6,6 +6,36 @@ This is a prepared replacement tree, not a published GitHub fork. Fork https://g
 
 ## Install and build
 
+The bundled DLL is built from upstream WinSparkle 0.9.4 with
+`tools/patches/winsparkle-no-skip.patch`. This hides **Skip this version** for
+all updates. **Remind me later** remains available for ordinary updates and
+hidden for critical updates, as upstream intended. This changes the native
+dialog without changing the Python API.
+
+You do not need a WinSparkle repository or fork on GitHub. Keep the patch in
+this Python repository; the build script checks out the official upstream
+source at the exact commit recorded in `tools/winsparkle.json`, initializes
+its pinned submodules, applies the patch, and builds a Release x64 DLL.
+The source checkout stays under the ignored `build/` directory.
+
+To rebuild locally, install Git, Visual Studio **2022** with **Desktop
+development with C++** and a Windows SDK, and the NuGet command-line tool.
+With `nuget.exe` on PATH:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_winsparkle.ps1
+```
+
+Alternatively pass `-NuGet C:\path\to\nuget.exe`. The script finds Visual
+Studio 2022's MSBuild automatically; `-MSBuild C:\path\to\MSBuild.exe`
+overrides it. The execution policy applies only to that PowerShell process.
+The script copies the DLL and upstream notices into
+`pywinsparkle/libs/x64/` and records the source revision, patch hashes and
+DLL SHA-256 in `native-build.json`. Repeat builds reuse the checkout; the
+script rejects an unexpected commit or unrelated tracked source edits.
+
+Then install or package the Python wrapper:
+
 ```powershell
 py -m pip uninstall pywinsparkle
 py -m pip install .
@@ -13,7 +43,13 @@ py -m pip install build
 py -m build
 ```
 
-The wheel is `py3-none-win_amd64`, not a universal wheel or CPython-specific extension. It includes only the x64 DLL and its notices. The sdist contains the same DLL.
+The wheel is `py3-none-win_amd64`, not a universal wheel or CPython-specific extension. It bundles the x64 DLL, its notices and native build metadata. The sdist contains the same DLL and the build script and patch needed to rebuild it.
+
+If you already have your own Release x64 WinSparkle DLL, copy it to
+`pywinsparkle/libs/x64/WinSparkle.dll` before running `pip install .` or
+`python -m build`, preserving its license notices. Remove or update
+`native-build.json` if it describes a different binary. Packaging uses
+the DLL at that path; it does not compile or download WinSparkle.
 
 ## Use
 
@@ -56,11 +92,26 @@ Pass that YAML via `--user-package-configuration-file=your-config.yml`. Check th
 
 ## Dependency maintenance
 
-`tools/winsparkle.json` pins version, URL and SHA-256 of the extracted DLL. `vendor_winsparkle.py` restores only the official x64 DLL after digest verification. The scheduled workflow reports upstream version changes; it deliberately does not publish or silently upgrade binaries. To upgrade, review the new header, archive layout, licenses and release notes; update the manifest with a independently reviewed DLL digest, vendor the dependency, update bindings, and run Windows CI before tagging a release. Build workflow uploads wheel/sdist artifacts; it does not publish to PyPI.
+`tools/winsparkle.json` pins the upstream source commit and patch list as well
+as the official archive URL and DLL digest. Windows CI builds the patched
+DLL once on `windows-2022`, then shares it with the Python build jobs. It
+uploads the native DLL with its provenance and notices, plus wheel/sdist
+artifacts; it does not publish to PyPI.
+
+`python tools/vendor_winsparkle.py --official` explicitly restores the
+**unmodified official DLL**, replacing the patched binary and removing its
+build metadata. It is an opt-in fallback, and CI does not call it.
+
+The scheduled workflow reports upstream version changes without upgrading.
+To upgrade, review the new header, source revision, patch applicability,
+archive layout, licenses and release notes; update the pins, rebuild the
+native dependency, update bindings, and run Windows CI before tagging a
+release. Custom DLL hashes can vary with the compiler and are recorded for
+each build; the official release digest is only for the official fallback.
 
 ## Verification and limits
 
-Local tests use a fake native library for conversion, callback return values, lifetime, exception handling and unregistration. Windows CI additionally installs the wheel away from the source tree and loads the actual DLL, validating every bound export. Full signed-appcast download/install testing and clean-machine GUI/Nuitka tests are still required on Windows. This kit has not been run on Windows in the preparation environment.
+Local tests use a fake native library for conversion, callback return values, lifetime, exception handling and unregistration. Windows CI additionally installs the wheel away from the source tree and loads the actual DLL, validating every bound export and checking its digest against the bundled build metadata. Full signed-appcast download/install testing and clean-machine GUI/Nuitka tests are still required on Windows.
 
 Original wrapper source: https://github.com/dyer234/pywinsparkle
 Native dependency: https://github.com/vslavik/winsparkle/releases/tag/v0.9.4

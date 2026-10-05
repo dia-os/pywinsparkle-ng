@@ -1,4 +1,5 @@
 include winsparkle-0.9.4.h
 recursive-include tools *.py *.json
+recursive-include tools *.ps1 *.patch
 recursive-include tests *.py
 recursive-include .github *.yml
