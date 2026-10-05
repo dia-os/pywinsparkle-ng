@@ -1,0 +1,12 @@
+﻿{
+    "version":  "0.9.4",
+    "source_url":  "https://github.com/vslavik/winsparkle.git",
+    "source_revision":  "a8986caf620262f7d4581b241436ceaa0cc9370f",
+    "patches":  [
+                    {
+                        "name":  "winsparkle-no-skip.patch",
+                        "sha256":  "a199018060aa072107d21504d927e73d03741afc5eb11a0f8cc16e099335eed7"
+                    }
+                ],
+    "dll_sha256":  "002bbcb591623b1544a51b39a3c0434a0fcf1453ec86b7b04bbb4fbf40cc3e3f"
+}

@@ -29,5 +29,5 @@ jobs:
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
               out.write(message + '\n')
           if latest != pinned:
-              raise SystemExit('Review new header, DLL digest and notices before upgrading')
+              raise SystemExit('Review new header, source revision, patches, DLL digest and notices before upgrading')
           PY
